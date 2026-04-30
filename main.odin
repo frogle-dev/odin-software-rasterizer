@@ -1,5 +1,6 @@
 package main
 
+import "core:container/handle_map"
 import rz "rasterizer"
 
 import "core:fmt"
@@ -12,48 +13,14 @@ main :: proc()
 	ctx, ok := rz.init(640, 480)
 	if !ok
 	{
+		log.info("Initialization failed")
 		return
 	}
 
-	_, _, _, lastFrame := time.precise_clock_from_time(time.now())
-
-	mouseX, mouseY: f32
-	quit := false
-	for !quit
+	for !ctx.quit
 	{
-		for e: sdl.Event; sdl.PollEvent(&e);
-		{
-			#partial switch e.type
-			{
-				case .QUIT:
-					quit = true
-					break
-				case .WINDOW_RESIZED:
-					if (ctx.surface != nil) 
-					{
-						sdl.DestroySurface(ctx.surface)
-						ctx.surface = nil
-					}
-					ctx.width = e.window.data1
-					ctx.height = e.window.data2
-				case .MOUSE_MOTION:
-					mouseX = e.motion.x
-					mouseY = e.motion.y
-			}
-		}
-		
-		_, _, _, currentFrame := time.precise_clock_from_time(time.now())
-
-		deltaTime: f32 = f32(currentFrame - lastFrame) / 1000000000
-		lastFrame = currentFrame
-
-		// fmt.printfln("ms: %v", deltaTime)
-
-		if (ctx.surface == nil)
-		{
-			ctx.surface = sdl.CreateSurface(ctx.width, ctx.height, .RGBA32)
-			// sdl.SetSurfaceBlendMode(surface, .ADD)
-		}
+		rz.handle_events(&ctx)
+		rz.enter_frame(&ctx)
 
 		colorBuffer := rz.ImageView {
 			pixels = cast([^]rz.Col4_ub)ctx.surface.pixels,
@@ -75,11 +42,8 @@ main :: proc()
 				color = {0, 200, 200, 255}
 			}
 		})
-
-		rect := sdl.Rect { x = 0, y = 0, w = ctx.width, h = ctx.height, }
-		sdl.BlitSurface(ctx.surface, &rect, sdl.GetWindowSurface(ctx.window), &rect)
-
-		sdl.UpdateWindowSurface(ctx.window)
+		
+		rz.exit_frame(ctx)
 	}
 
 	rz.quit(ctx)
