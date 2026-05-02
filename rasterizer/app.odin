@@ -3,6 +3,7 @@ package rasterizer
 import sdl "vendor:sdl3"
 
 import "core:log"
+import "core:fmt"
 import "core:time"
 
 AppCtx :: struct
@@ -83,7 +84,7 @@ enter_frame :: proc(ctx: ^AppCtx)
 	ctx.deltaTime = f32(currentFrame - ctx.lastFrame) / 1000000000
 	ctx.lastFrame = currentFrame
 
-	// fmt.printfln("ms: %v", deltaTime)
+	// fmt.printfln("ms: %v", ctx.deltaTime)
 
 	if (ctx.surface == nil)
 	{

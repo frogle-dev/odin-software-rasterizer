@@ -6,11 +6,12 @@ import rz "rasterizer"
 import "core:fmt"
 import "core:time"
 import "core:log"
+import lalg "core:math/linalg"
 import sdl "vendor:sdl3"
 
 main :: proc()
 {
-	ctx, ok := rz.init(640, 480)
+	ctx, ok := rz.init(1280, 720)
 	if !ok
 	{
 		log.info("Initialization failed")
@@ -23,25 +24,37 @@ main :: proc()
 		rz.enter_frame(&ctx)
 
 		colorBuffer := rz.ImageView {
-			pixels = cast([^]rz.Col4_ub)ctx.surface.pixels,
+			pixels = cast([^]rz.Col4ub)ctx.surface.pixels,
 			width  = ctx.width,
 			height = ctx.height,
 		}
 
 		rz.clear_pixels(&colorBuffer, {255, 255, 255, 255})
 
-		vertices := []rz.Vec4_f {
-			{100, 100, 0, 0},
-			{200, 100, 0, 0},
-			{100, 200, 0, 0},
+		pos := []rz.Vec4f {
+			{0,   0,   0, 1},
+			{100, 0,   0, 1},
+			{0  , 100, 0, 1},
 		}
 
-		rz.draw(colorBuffer, {
-			mesh = {
-				positions = vertices,
-				color = {0, 200, 200, 255}
-			}
-		})
+		colors := []rz.Vec4f {
+			{1, 0, 0, 1},
+			{0, 1, 0, 1},
+			{0, 0, 1, 1},
+		}
+
+		for i in 0..< 100
+		{
+			rz.draw(colorBuffer, {
+				mesh = {
+					positions = {data = &pos},
+					colors = {data = &colors},
+					vertexCount = len(pos),
+				},
+				cullMode = .NONE,
+				transform = lalg.matrix4_translate_f32({ctx.mouseX + 50 * f32(i % 10), ctx.mouseY + 50 * f32(i / 10), 0}) * lalg.matrix4_scale_f32({0.5, 0.5, 0.5}),
+			})
+		}
 		
 		rz.exit_frame(ctx)
 	}

@@ -1,13 +1,23 @@
 package rasterizer
 
-Col4_ub :: [4]u8
+import lalg "core:math/linalg"
 
-Vec4_f :: [4]f32
-Vec3_f :: [3]f32
-Vec2_f :: [2]f32
+Col4ub :: [4]u8
 
-Mesh :: struct
+Vec4f :: lalg.Vector4f32
+Vec3f :: lalg.Vector3f32
+Vec2f :: lalg.Vector2f32
+
+Matrix4x4f :: lalg.Matrix4f32
+
+to_Col4ub :: proc(color: Vec4f) -> Col4ub
 {
-	color: Col4_ub,
-	positions: []Vec4_f,
+	result: Col4ub
+
+	result.r = u8(max(0, min(255, color.r * 255)))
+	result.g = u8(max(0, min(255, color.g * 255)))
+	result.b = u8(max(0, min(255, color.b * 255)))
+	result.a = u8(max(0, min(255, color.a * 255)))
+
+	return result
 }
