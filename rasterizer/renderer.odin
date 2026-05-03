@@ -11,21 +11,16 @@ clear_pixels :: proc(view: ^ImageView, color: Col4ub)
 	}
 }
 
-draw :: proc(view: ImageView, call: DrawCall)
+draw :: proc(view: ImageView, viewport: Viewport, call: DrawCall)
 {
 	for vertIdx := uint(0); vertIdx + 2 < call.mesh.vertexCount; vertIdx += 3
 	{
-		// v0 := call.transform * idx_attr(vertIdx + 0, call.mesh.positions)^
-		// v1 := call.transform * idx_attr(vertIdx + 1, call.mesh.positions)^
-		// v2 := call.transform * idx_attr(vertIdx + 2, call.mesh.positions)^
-		//
-		// c0: Vec4f = idx_attr(vertIdx + 0, call.mesh.colors)^
-		// c1: Vec4f = idx_attr(vertIdx + 1, call.mesh.colors)^
-		// c2: Vec4f = idx_attr(vertIdx + 2, call.mesh.colors)^
-
 		v0 := call.transform * call.mesh.positions.data[vertIdx + 0]
 		v1 := call.transform * call.mesh.positions.data[vertIdx + 1]
 		v2 := call.transform * call.mesh.positions.data[vertIdx + 2]
+		v0 = ndc_to_viewport_pixel(viewport, v0)
+		v1 = ndc_to_viewport_pixel(viewport, v1)
+		v2 = ndc_to_viewport_pixel(viewport, v2)
 
 		c0 := call.mesh.colors.data[vertIdx + 0]
 		c1 := call.mesh.colors.data[vertIdx + 1]
@@ -62,15 +57,15 @@ draw :: proc(view: ImageView, call: DrawCall)
 			det012 = -det012
 		}
 
-		xMin := min(i32(v0.x), i32(v1.x), i32(v2.x))
-		xMax := max(i32(v0.x), i32(v1.x), i32(v2.x))
-		yMin := min(i32(v0.y), i32(v1.y), i32(v2.y))
-		yMax := max(i32(v0.y), i32(v1.y), i32(v2.y))
+		xMin := max(0, viewport.xMin)
+		xMax := min(view.width, viewport.xMax) - 1
+		yMin := max(0, viewport.yMin)
+		yMax := min(view.height, viewport.yMax) - 1
 
-		xMin = max(0, xMin)
-		xMax = min(i32(view.width) - 1, xMax)
-		yMin = max(0, yMin)
-		yMax = min(i32(view.height) - 1, yMax)
+		xMin = min(xMin, i32(v0.x), i32(v1.x), i32(v2.x))
+		xMax = max(xMax, i32(v0.x), i32(v1.x), i32(v2.x))
+		yMin = min(yMin, i32(v0.y), i32(v1.y), i32(v2.y))
+		yMax = max(yMax, i32(v0.y), i32(v1.y), i32(v2.y))
 
 		for y in yMin..= yMax
 		{
