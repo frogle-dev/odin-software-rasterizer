@@ -13,18 +13,23 @@ clear_pixels :: proc(view: ^ImageView, color: Col4ub)
 
 draw :: proc(view: ImageView, viewport: Viewport, call: DrawCall)
 {
-	for vertIdx := uint(0); vertIdx + 2 < call.mesh.vertexCount; vertIdx += 3
+	// looping over all the triangles, per mesh index
+	for i := uint(0); i + 2 < len(call.mesh.indices); i += 3
 	{
-		v0 := call.transform * call.mesh.positions.data[vertIdx + 0]
-		v1 := call.transform * call.mesh.positions.data[vertIdx + 1]
-		v2 := call.transform * call.mesh.positions.data[vertIdx + 2]
+		i0 := call.mesh.indices[i + 0]
+		i1 := call.mesh.indices[i + 1]
+		i2 := call.mesh.indices[i + 2]
+
+		v0 := call.transform * call.mesh.positions.data[i0]
+		v1 := call.transform * call.mesh.positions.data[i1]
+		v2 := call.transform * call.mesh.positions.data[i2]
 		v0 = ndc_to_viewport_pixel(viewport, v0)
 		v1 = ndc_to_viewport_pixel(viewport, v1)
 		v2 = ndc_to_viewport_pixel(viewport, v2)
 
-		c0 := call.mesh.colors.data[vertIdx + 0]
-		c1 := call.mesh.colors.data[vertIdx + 1]
-		c2 := call.mesh.colors.data[vertIdx + 2]
+		c0 := call.mesh.colors.data[i0]
+		c1 := call.mesh.colors.data[i1]
+		c2 := call.mesh.colors.data[i2]
 
 		mat := matrix[2,2]f32 {
 			v1.x - v0.x, v1.y - v0.y,
