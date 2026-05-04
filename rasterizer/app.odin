@@ -14,8 +14,9 @@ AppCtx :: struct
 
 	mouseX, mouseY: f32,
 	quit: bool,
-
-	lastFrame: int,
+	
+	stopwatch: time.Stopwatch,
+	lastFrame: time.Duration,
 	deltaTime: f32,
 
 	logger: log.Logger,
@@ -48,7 +49,9 @@ init :: proc(width, height: i32) -> (ctx: AppCtx, ok: bool)
 		return ctx, false
 	}
 
-	_, _, _, ctx.lastFrame = time.precise_clock_from_time(time.now())
+	time.stopwatch_start(&ctx.stopwatch)
+
+	ctx.lastFrame = time.stopwatch_duration(ctx.stopwatch)
 
 	return ctx, true
 }
@@ -79,8 +82,8 @@ handle_events :: proc(ctx: ^AppCtx)
 
 enter_frame :: proc(ctx: ^AppCtx)
 {
-	_, _, _, currentFrame := time.precise_clock_from_time(time.now())
-
+	currentFrame := time.stopwatch_duration(ctx.stopwatch)
+	
 	ctx.deltaTime = f32(currentFrame - ctx.lastFrame) / 1000000000
 	ctx.lastFrame = currentFrame
 

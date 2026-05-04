@@ -1,10 +1,8 @@
 package main
 
-import "core:container/handle_map"
 import rz "rasterizer"
 
 import "core:fmt"
-import "core:time"
 import "core:log"
 import lalg "core:math/linalg"
 import sdl "vendor:sdl3"
@@ -18,6 +16,8 @@ main :: proc()
 		return
 	}
 
+
+	rotation: f32 = 0
 	for !ctx.quit
 	{
 		rz.handle_events(&ctx)
@@ -30,10 +30,10 @@ main :: proc()
 		}
 
 		viewport := rz.Viewport {
-			xMin = 0,
-			yMin = 0,
-			xMax = colorBuffer.width,
-			yMax = colorBuffer.height,
+			x = 0,
+			y = 0,
+			width = colorBuffer.width,
+			height = colorBuffer.height,
 		}
 
 		rz.clear_pixels(&colorBuffer, {255, 255, 255, 255})
@@ -57,16 +57,31 @@ main :: proc()
 			{0, 0, 0, 1},
 		}
 
-		rz.draw(colorBuffer, viewport, {
-			mesh = {
-				positions 	= {data = &pos},
-				colors 		= {data = &colors},
-				vertexCount = len(pos),
-				indices 	= indices,
+		viewMatrices := rz.ViewMatrices {
+			view = lalg.matrix4_translate_f32({0, 0, -2}),
+			projection = lalg.matrix4_perspective_f32(lalg.to_radians(f32(60)), f32(viewport.width)/f32(viewport.height), 0.1, 100.0)
+		}
+		
+		rotation += ctx.deltaTime
+		model := lalg.matrix4_rotate_f32(rotation, {1, 0, 0})
+
+		rz.draw(
+			info = {
+				viewport = viewport,
+				tex = colorBuffer,
+				matrices = viewMatrices,
 			},
-			cullMode = .NONE,
-			transform = lalg.MATRIX4F32_IDENTITY,
-		})
+			call = {
+				mesh = {
+					positions 	= {data = &pos},
+					colors 		= {data = &colors},
+					vertexCount = len(pos),
+					indices 	= indices,
+				},
+				cullMode = .NONE,
+				transform = model,
+			}
+		)
 		
 		rz.exit_frame(ctx)
 	}

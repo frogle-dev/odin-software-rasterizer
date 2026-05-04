@@ -11,7 +11,7 @@ clear_pixels :: proc(view: ^ImageView, color: Col4ub)
 	}
 }
 
-draw :: proc(view: ImageView, viewport: Viewport, call: DrawCall)
+draw :: proc(info: RenderInfo, call: DrawCall)
 {
 	// looping over all the triangles, per mesh index
 	for i := uint(0); i + 2 < len(call.mesh.indices); i += 3
@@ -19,13 +19,20 @@ draw :: proc(view: ImageView, viewport: Viewport, call: DrawCall)
 		i0 := call.mesh.indices[i + 0]
 		i1 := call.mesh.indices[i + 1]
 		i2 := call.mesh.indices[i + 2]
+		
+		// after transformation by projection matrix, the vertices are in clip space
+		v0 := info.matrices.projection * info.matrices.view * call.transform * call.mesh.positions.data[i0]
+		v1 := info.matrices.projection * info.matrices.view * call.transform * call.mesh.positions.data[i1]
+		v2 := info.matrices.projection * info.matrices.view * call.transform * call.mesh.positions.data[i2]
+		
+		// conversion back into NDC space
+		v0.xyz /= v0.w
+		v1.xyz /= v1.w
+		v2.xyz /= v2.w
 
-		v0 := call.transform * call.mesh.positions.data[i0]
-		v1 := call.transform * call.mesh.positions.data[i1]
-		v2 := call.transform * call.mesh.positions.data[i2]
-		v0 = ndc_to_viewport_pixel(viewport, v0)
-		v1 = ndc_to_viewport_pixel(viewport, v1)
-		v2 = ndc_to_viewport_pixel(viewport, v2)
+		v0 = ndc_to_viewport_pixel(info.viewport, v0)
+		v1 = ndc_to_viewport_pixel(info.viewport, v1)
+		v2 = ndc_to_viewport_pixel(info.viewport, v2)
 
 		c0 := call.mesh.colors.data[i0]
 		c1 := call.mesh.colors.data[i1]
@@ -62,19 +69,21 @@ draw :: proc(view: ImageView, viewport: Viewport, call: DrawCall)
 			det012 = -det012
 		}
 
-		xMin := max(0, viewport.xMin)
-		xMax := min(view.width, viewport.xMax) - 1
-		yMin := max(0, viewport.yMin)
-		yMax := min(view.height, viewport.yMax) - 1
+		// xMin := max(0, info.viewport.x)
+		// xMax := min(info.tex.width, info.viewport.xMax) - 1
+		// yMin := max(0, info.viewport.yMin)
+		// yMax := min(info.tex.height, info.viewport.yMax) - 1
+		//
+		// fmt.printfln("%v, %v", xMin, yMin)
+		//
+		// xMin = min(xMin, i32(v0.x), i32(v1.x), i32(v2.x))
+		// xMax = max(xMax, i32(v0.x), i32(v1.x), i32(v2.x))
+		// yMin = min(yMin, i32(v0.y), i32(v1.y), i32(v2.y))
+		// yMax = max(yMax, i32(v0.y), i32(v1.y), i32(v2.y))
 
-		xMin = min(xMin, i32(v0.x), i32(v1.x), i32(v2.x))
-		xMax = max(xMax, i32(v0.x), i32(v1.x), i32(v2.x))
-		yMin = min(yMin, i32(v0.y), i32(v1.y), i32(v2.y))
-		yMax = max(yMax, i32(v0.y), i32(v1.y), i32(v2.y))
-
-		for y in yMin..= yMax
+		for y in info.viewport.y..= info.viewport.y + info.viewport.height
 		{
-			for x in xMin..= xMax
+			for x in info.viewport.x..= info.viewport.x + info.viewport.width
 			{
 				point := Vec4f{f32(x) + 0.5, f32(y) + 0.5, 0, 0}
 
@@ -105,7 +114,7 @@ draw :: proc(view: ImageView, viewport: Viewport, call: DrawCall)
 					l1: f32 = det20point / det012
 					l2: f32 = det01point / det012
 
-					pixel_at(view, x, y)^ = to_Col4ub(l0 * c0 + l1 * c1 + l2 * c2)
+					pixel_at(info.tex, x, y)^ = to_Col4ub(l0 * c0 + l1 * c1 + l2 * c2)
 				}
 			}
 		}
