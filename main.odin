@@ -58,8 +58,8 @@ main :: proc()
 		}
 
 		viewMatrices := rz.ViewMatrices {
-			view = lalg.matrix4_translate_f32({0, 0, -2}),
-			projection = lalg.matrix4_perspective_f32(lalg.to_radians(f32(60)), f32(viewport.width)/f32(viewport.height), 0.1, 100.0)
+			view = lalg.matrix4_translate_f32({0, 0, -3}),
+			projection = lalg.matrix4_perspective_f32(lalg.to_radians(f32(45)), f32(viewport.width)/f32(viewport.height), 0.1, 100.0)
 		}
 		
 		rotation += ctx.deltaTime

@@ -69,21 +69,19 @@ draw :: proc(info: RenderInfo, call: DrawCall)
 			det012 = -det012
 		}
 
-		// xMin := max(0, info.viewport.x)
-		// xMax := min(info.tex.width, info.viewport.xMax) - 1
-		// yMin := max(0, info.viewport.yMin)
-		// yMax := min(info.tex.height, info.viewport.yMax) - 1
-		//
-		// fmt.printfln("%v, %v", xMin, yMin)
-		//
-		// xMin = min(xMin, i32(v0.x), i32(v1.x), i32(v2.x))
-		// xMax = max(xMax, i32(v0.x), i32(v1.x), i32(v2.x))
-		// yMin = min(yMin, i32(v0.y), i32(v1.y), i32(v2.y))
-		// yMax = max(yMax, i32(v0.y), i32(v1.y), i32(v2.y))
+		xMin := max(0, info.viewport.x)
+		xMax := min(info.tex.width, info.viewport.x + info.viewport.width)
+		yMin := max(0, info.viewport.y)
+		yMax := min(info.tex.height, info.viewport.y + info.viewport.height)
 
-		for y in info.viewport.y..= info.viewport.y + info.viewport.height
+		xMin = max(xMin, min(i32(v0.x), i32(v1.x), i32(v2.x)))
+		xMax = max(xMax, i32(v0.x), i32(v1.x), i32(v2.x))
+		yMin = max(yMin, min(i32(v0.y), i32(v1.y), i32(v2.y)))
+		yMax = max(yMax, i32(v0.y), i32(v1.y), i32(v2.y))
+
+		for y in yMin..= yMax
 		{
-			for x in info.viewport.x..= info.viewport.x + info.viewport.width
+			for x in xMin..= xMax
 			{
 				point := Vec4f{f32(x) + 0.5, f32(y) + 0.5, 0, 0}
 
