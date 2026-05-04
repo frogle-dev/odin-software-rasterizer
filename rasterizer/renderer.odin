@@ -74,10 +74,12 @@ draw :: proc(info: RenderInfo, call: DrawCall)
 		yMin := max(0, info.viewport.y)
 		yMax := min(info.tex.height, info.viewport.y + info.viewport.height)
 
+		fmt.printfln("%v, %v", xMin, xMax)
+
 		xMin = max(xMin, min(i32(v0.x), i32(v1.x), i32(v2.x)))
-		xMax = max(xMax, i32(v0.x), i32(v1.x), i32(v2.x))
+		xMax = min(xMax, max(i32(v0.x), i32(v1.x), i32(v2.x)))
 		yMin = max(yMin, min(i32(v0.y), i32(v1.y), i32(v2.y)))
-		yMax = max(yMax, i32(v0.y), i32(v1.y), i32(v2.y))
+		yMax = min(yMax, max(i32(v0.y), i32(v1.y), i32(v2.y)))
 
 		for y in yMin..= yMax
 		{
