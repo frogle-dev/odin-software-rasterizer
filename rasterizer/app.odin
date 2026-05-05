@@ -87,7 +87,7 @@ enter_frame :: proc(ctx: ^AppCtx)
 	ctx.deltaTime = f32(currentFrame - ctx.lastFrame) / 1000000000
 	ctx.lastFrame = currentFrame
 
-	// fmt.printfln("ms: %v", ctx.deltaTime)
+	fmt.printfln("ms: %v", ctx.deltaTime)
 
 	if (ctx.surface == nil)
 	{

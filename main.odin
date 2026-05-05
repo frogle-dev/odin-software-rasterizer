@@ -18,12 +18,6 @@ main :: proc()
 
 	rz.init_input()
 
-	// if !sdl.HideCursor()
-	// {
-	// 	log.info("SDL3 hide cursor failed")
-	// 	return
-	// }
-
 	if !sdl.SetWindowRelativeMouseMode(ctx.window, true)
 	{
 		log.info("SDL3 cursor locking failed")
@@ -33,7 +27,6 @@ main :: proc()
 	cam: rz.Camera
 	cam.sensitivity = 0.1
 	cam.pos = {0, 0, 3}
-	cam.rotation = {0, 0, 0}
 
 	rotation: f32 = 0
 	for !ctx.quit
@@ -117,6 +110,14 @@ main :: proc()
 		{
 			direction -= cam.straightForward
 		}
+		if rz.get_key_pressed(.SPACE)
+		{
+			direction += {0, 1, 0}
+		}
+		if rz.get_key_pressed(.LSHIFT)
+		{
+			direction -= {0, 1, 0}
+		}
 		cam.pos += direction * speed * ctx.deltaTime
 
 		rz.camera_look(&cam, ctx)
@@ -127,25 +128,31 @@ main :: proc()
 		}
 		
 		rotation += ctx.deltaTime
-		model := lalg.matrix4_rotate_f32(rotation * 2, {1, 0, 0})
 
-		rz.draw(
-			info = {
-				viewport = viewport,
-				tex = colorBuffer,
-				matrices = viewMatrices,
-			},
-			call = {
-				mesh = {
-					positions 	= {data = &pos},
-					colors 		= {data = &colors},
-					vertexCount = len(pos),
-					indices 	= indices,
+		for i in 0..< 3
+		{
+			model := lalg.matrix4_translate_f32(
+				{lalg.cos(f32(i)), 0, lalg.sin(f32(i))}) * lalg.matrix4_rotate_f32(rotation * 2, {1, 0, 0}
+			)
+
+			rz.draw(
+				info = {
+					viewport = viewport,
+					tex = colorBuffer,
+					matrices = viewMatrices,
 				},
-				cullMode = .CCW,
-				transform = model,
-			}
-		)
+				call = {
+					mesh = {
+						positions 	= {data = &pos},
+						colors 		= {data = &colors},
+						vertexCount = len(pos),
+						indices 	= indices,
+					},
+					cullMode = .CCW,
+					transform = model,
+				}
+			)
+		}
 		
 		rz.exit_frame(ctx)
 	}
