@@ -8,8 +8,8 @@ Viewport :: struct
 ndc_to_viewport_pixel :: proc(viewport: Viewport, vec: Vec4f) -> Vec4f
 {
 	v: Vec4f
-	v.x = f32(viewport.x + viewport.width) * (0.5 + 0.5 * vec.x)
-	v.y = f32(viewport.y + viewport.height) * (0.5 + 0.5 * vec.y)
+	v.x = f32(viewport.x) + f32(viewport.width)  * (0.5 + 0.5 * vec.x)
+	v.y = f32(viewport.y) + f32(viewport.height) * (0.5 - 0.5 * vec.y)
 
 	return v
 }

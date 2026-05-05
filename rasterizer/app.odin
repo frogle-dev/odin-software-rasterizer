@@ -12,7 +12,6 @@ AppCtx :: struct
 	window: ^sdl.Window,
 	surface: ^sdl.Surface,
 
-	mouseX, mouseY: f32,
 	quit: bool,
 	
 	stopwatch: time.Stopwatch,
@@ -56,7 +55,7 @@ init :: proc(width, height: i32) -> (ctx: AppCtx, ok: bool)
 	return ctx, true
 }
 
-handle_events :: proc(ctx: ^AppCtx)
+handle_events :: proc(ctx: ^AppCtx) -> bool
 {
 	for e: sdl.Event; sdl.PollEvent(&e);
 	{
@@ -73,11 +72,12 @@ handle_events :: proc(ctx: ^AppCtx)
 				}
 				ctx.width = e.window.data1
 				ctx.height = e.window.data2
-			case .MOUSE_MOTION:
-				ctx.mouseX = e.motion.x
-				ctx.mouseY = e.motion.y
+			case .WINDOW_FOCUS_GAINED:
+				sdl.SetWindowRelativeMouseMode(ctx.window, true) or_return
 		}
 	}
+
+	return true
 }
 
 enter_frame :: proc(ctx: ^AppCtx)

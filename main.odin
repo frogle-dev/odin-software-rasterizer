@@ -18,12 +18,31 @@ main :: proc()
 
 	rz.init_input()
 
+	// if !sdl.HideCursor()
+	// {
+	// 	log.info("SDL3 hide cursor failed")
+	// 	return
+	// }
 
-	cameraPosition: rz.Vec3f = {0,0,-3}
+	if !sdl.SetWindowRelativeMouseMode(ctx.window, true)
+	{
+		log.info("SDL3 cursor locking failed")
+		return
+	}
+
+	cam: rz.Camera
+	cam.sensitivity = 0.1
+	cam.pos = {0, 0, 3}
+	cam.rotation = {0, 0, 0}
+
 	rotation: f32 = 0
 	for !ctx.quit
 	{
-		rz.handle_events(&ctx)
+		if !rz.handle_events(&ctx)
+		{
+			log.info("Event handling failed")
+			return
+		}
 		rz.enter_frame(&ctx)
 
 		colorBuffer := rz.ImageView {
@@ -56,17 +75,17 @@ main :: proc()
 
 		indices := []int{
 			// Front  (+Z)
-			0, 1, 2,  0, 2, 3,
+			0, 2, 1,  0, 3, 2,
 			// Back   (-Z)
-			4, 6, 5,  4, 7, 6,
+			4, 5, 6,  4, 6, 7,
 			// Right  (+X)
-			4, 5, 1,  4, 1, 0,
+			4, 1, 5,  4, 0, 1,
 			// Left   (-X)
-			3, 2, 6,  3, 6, 7,
+			3, 6, 2,  3, 7, 6,
 			// Top    (+Y)
-			1, 5, 6,  1, 6, 2,
+			1, 6, 5,  1, 2, 6,
 			// Bottom (-Y)
-			4, 0, 3,  4, 3, 7,
+			4, 3, 0,  4, 7, 3,
 		}
 
 		colors := []rz.Vec4f{
@@ -84,24 +103,26 @@ main :: proc()
 		direction := rz.Vec3f {0, 0, 0}
 		if rz.get_key_pressed(.A)
 		{
-			direction.x += 1
+			direction -= cam.right
 		}
 		if rz.get_key_pressed(.D)
 		{
-			direction.x -= 1
+			direction += cam.right
 		}
 		if rz.get_key_pressed(.W)
 		{
-			direction.z += 1
+			direction += cam.straightForward
 		}
 		if rz.get_key_pressed(.S)
 		{
-			direction.z -= 1
+			direction -= cam.straightForward
 		}
-		cameraPosition += direction * speed * ctx.deltaTime
+		cam.pos += direction * speed * ctx.deltaTime
+
+		rz.camera_look(&cam, ctx)
 
 		viewMatrices := rz.ViewMatrices {
-			view = lalg.matrix4_translate_f32(cameraPosition),
+			view = cam.view,
 			projection = lalg.matrix4_perspective_f32(lalg.to_radians(f32(45)), f32(viewport.width)/f32(viewport.height), 0.1, 100.0)
 		}
 		

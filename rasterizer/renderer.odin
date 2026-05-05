@@ -24,6 +24,12 @@ draw :: proc(info: RenderInfo, call: DrawCall)
 		v0 := info.matrices.projection * info.matrices.view * call.transform * call.mesh.positions.data[i0]
 		v1 := info.matrices.projection * info.matrices.view * call.transform * call.mesh.positions.data[i1]
 		v2 := info.matrices.projection * info.matrices.view * call.transform * call.mesh.positions.data[i2]
+
+		// if vertex is behind the near plane, discard
+		if v0.w <= 0 || v1.w <= 0 || v2.w <= 0
+		{
+			continue
+		}
 		
 		// conversion back into NDC space
 		v0.xyz /= v0.w
@@ -73,8 +79,6 @@ draw :: proc(info: RenderInfo, call: DrawCall)
 		xMax := min(info.tex.width, info.viewport.x + info.viewport.width)
 		yMin := max(0, info.viewport.y)
 		yMax := min(info.tex.height, info.viewport.y + info.viewport.height)
-
-		fmt.printfln("%v, %v", xMin, xMax)
 
 		xMin = max(xMin, min(i32(v0.x), i32(v1.x), i32(v2.x)))
 		xMax = min(xMax, max(i32(v0.x), i32(v1.x), i32(v2.x)))
